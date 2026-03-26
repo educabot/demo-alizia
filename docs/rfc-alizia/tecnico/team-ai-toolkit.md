@@ -34,7 +34,7 @@ Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene tod
           │                    │                      │
           ▼                    ▼                      ▼
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Alizia v2     │  │  tich-cronos    │  │  Futuro proyecto │
+│    Alizia       │  │  tich-cronos    │  │  Futuro proyecto │
 │   (monolito)    │  │  (refactorizado)│  │                 │
 │                 │  │                 │  │                 │
 │  DB: alizia_db  │  │  DB: cronos_db  │  │  DB: propia     │
@@ -67,7 +67,7 @@ Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene tod
 
 ### Qué se usa hoy
 
-Alizia v2 y tich-cronos usan **Auth0** como servicio de autenticación. Auth0 maneja credenciales, emite tokens JWT, y expone un endpoint JWKS para validación.
+Alizia y tich-cronos usan **Auth0** como servicio de autenticación. Auth0 maneja credenciales, emite tokens JWT, y expone un endpoint JWKS para validación.
 
 Los backends validan los JWT usando **Auth0 JWKS** (JSON Web Key Set) via `team-ai-toolkit/tokens`. No se necesita una RSA key pair propia.
 
@@ -82,7 +82,7 @@ Login (HTTP call a Auth0, solo 1 vez)
 
 ### Auth Service propio (FUTURO)
 
-> El auth-service propio está planificado como reemplazo de Auth0 a futuro. No es necesario para el lanzamiento de Alizia v2. Ver ARQUITECTURA-AUTH-SERVICE.md para los detalles del diseño futuro.
+> El auth-service propio está planificado como reemplazo de Auth0 a futuro. No es necesario para el lanzamiento de Alizia. Ver ARQUITECTURA-AUTH-SERVICE.md para los detalles del diseño futuro.
 
 ---
 
@@ -422,7 +422,7 @@ educabot/
 │   ├── db/migrations/           #   organizations, users, user_roles, refresh_tokens
 │   └── go.mod                   #   importa team-ai-toolkit
 │
-├── alizia-api/                  # Monolito Alizia v2 (deploy propio)
+├── alizia-api/                  # Monolito Alizia (deploy propio)
 │   ├── cmd/                     #   Entry point + DI manual
 │   ├── src/                     #   core/, entrypoints/, repositories/, mocks/
 │   ├── config/                  #   Config propio (extiende BaseConfig)
@@ -446,7 +446,7 @@ educabot/
 | **¿Qué es team-ai-toolkit?** | Librería Go con infraestructura compartida |
 | **¿Se deploya?** | No. Se importa como dependencia en `go.mod` |
 | **¿Qué contiene?** | web/, boot/, dbconn/, tokens/, applog/, pagination/, transactions/, errors/, config/ |
-| **¿Quién lo usa?** | Alizia v2, tich-cronos, auth-service, futuros proyectos |
+| **¿Quién lo usa?** | Alizia, tich-cronos, auth-service, futuros proyectos |
 | **¿Qué es auth-service?** | Microservicio propio planificado para el futuro. Actualmente se usa Auth0 (mismo sistema que tich-cronos) |
 | **¿Cómo se relacionan?** | Auth0 firma tokens. team-ai-toolkit/tokens/ los valida via JWKS. Los proyectos importan team-ai-toolkit |
 | **¿Qué NO va?** | Lógica de dominio, entities, usecases, handlers, migraciones |
