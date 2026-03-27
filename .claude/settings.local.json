@@ -46,7 +46,11 @@
       "Bash(__NEW_LINE_5b899343c1d4de9d__ cat:*)",
       "Bash(/tmp/validation_summary.txt:*)",
       "Bash(find /c/Users/Educabot/Desktop/Educabot/Repositorios/alizia-be/docs/rfc-alizia/epicas -type f -name *)",
-      "Bash(find /c/Users/Educabot/Desktop/Educabot/Repositorios -name *.go -type f)"
+      "Bash(find /c/Users/Educabot/Desktop/Educabot/Repositorios -name *.go -type f)",
+      "Bash(grep -E \"^-.*\\\\.md$|^d\")",
+      "Bash(wc:*)",
+      "Bash(grep -v \"^\\\\.$\")",
+      "Bash(grep -E \"^-.*\\\\.md$|^d\" echo \"\" fi done)"
     ]
   }
 }
