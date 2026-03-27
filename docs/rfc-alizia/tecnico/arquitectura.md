@@ -1,8 +1,8 @@
-# Arquitectura Go — Alizia v2
+# Arquitectura Go — Alizia
 
 Documento de referencia para el equipo. Define estructura, patrones, convenciones y decisiones técnicas del backend.
 
-**Contexto**: Plataforma educativa multi-tenant. Monolito modular con Auth0 para autenticación (mismo sistema que tich-cronos). PostgreSQL. Railway como deploy target. Equipo de 4+ devs.
+**Contexto**: Plataforma educativa multi-tenant. Monolito modular con JWT authentication (via team-ai-toolkit/tokens). PostgreSQL. Railway como deploy target. Equipo de 4+ devs.
 
 **Filosofía**: Tomar lo mejor de ai-assistant (simplicidad, graceful degradation, SQL explícito, abstracción HTTP) y tich-cronos (Clean Architecture, testing robusto, CI completo) sin caer en over-engineering.
 
@@ -19,7 +19,7 @@ Documento de referencia para el equipo. Define estructura, patrones, convencione
 | ORM | GORM | Estándar de la empresa, ya usado en tich-cronos |
 | Base de datos | PostgreSQL | Multi-tenant, JSONB, triggers, enums |
 | Migraciones | golang-migrate | Up/down, embebidas en binario |
-| Auth | Auth0 JWT + Bearer tokens (via team-ai-toolkit/tokens) | Validación via JWKS (mismo sistema que tich-cronos) |
+| Auth | JWT + Bearer tokens (via team-ai-toolkit/tokens) | Validación via JWKS |
 | AI | Azure OpenAI SDK | Requerimiento de negocio |
 | Logging | slog via team-ai-toolkit/applog | Structured logging nativo, sin dependencias |
 | Error tracking | Bugsnag via team-ai-toolkit/applog/bugsnag | Stack actual de la empresa, ya integrado en tich-cronos |
@@ -44,7 +44,7 @@ Para queries complejas (JOINs de 8+ tablas, CTEs recursivos para topics), se usa
 
 ### Deploy e infraestructura: Railway
 
-Railway es la plataforma de deploy para Alizia v2. Corre un Docker container estándar — el mismo Dockerfile que usamos en desarrollo local.
+Railway es la plataforma de deploy para Alizia. Corre un Docker container estándar — el mismo Dockerfile que usamos en desarrollo local.
 
 #### ¿Qué es Railway?
 
@@ -67,7 +67,7 @@ No hay pasos manuales. Push a main = deploy automático.
 
 | Aspecto | Cómo se configura |
 |---|---|
-| **Environment variables** | Dashboard de Railway (DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE, API_KEY_BUGSNAG, etc.) |
+| **Environment variables** | Dashboard de Railway (DATABASE_URL, JWKS_DOMAIN, JWKS_AUDIENCE, API_KEY_BUGSNAG, etc.) |
 | **Puerto** | Railway detecta `PORT` automáticamente o se configura en dashboard |
 | **Dominio** | Railway asigna un dominio `.up.railway.app` + custom domain si se necesita |
 | **PostgreSQL** | Railway ofrece PostgreSQL managed en el mismo proyecto, o se conecta a una DB externa |
@@ -93,7 +93,7 @@ Todo lo que está en `team-ai-toolkit` funciona sin cambios:
 | `boot/gin.go` | `/health` ya existe, Railway lo usa para healthcheck. Sin cambios |
 | `applog/` | slog a stdout, Railway lo captura. Sin cambios |
 | `dbconn/` | Se conecta por `DATABASE_URL` (env var). Sin cambios |
-| `tokens/` | Validación JWT via Auth0 JWKS. Sin cambios |
+| `tokens/` | Validación JWT via JWKS. Sin cambios |
 | `web/` | Abstracción HTTP no sabe dónde corre. Sin cambios |
 
 #### ¿Y si mañana migran de Railway?
@@ -112,7 +112,7 @@ El Dockerfile es estándar. Se puede deployar en:
 Railway Project: alizia
 ├── Service: alizia-api          ← Este repo (Docker container)
 │   ├── Dockerfile               ← Build automático
-│   ├── Environment variables    ← DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE, etc.
+│   ├── Environment variables    ← DATABASE_URL, JWKS_DOMAIN, JWKS_AUDIENCE, etc.
 │   └── Custom domain            ← api.alizia.com (opcional)
 │
 └── Service: postgres            ← PostgreSQL managed (o externo)
@@ -135,7 +135,7 @@ Go 1.21+ incluye `log/slog` con structured logging. Es estándar, no agrega depe
 │  web/          → Abstracción HTTP (Request, Response)   │
 │  web/gin/      → Adaptador Gin (Adapt, AdaptMiddleware) │
 │  boot/         → Server bootstrap (NewEngine, NewServer) │
-│  tokens/       → Auth0 JWKS validation, Claims, middleware │
+│  tokens/       → JWT JWKS validation, Claims, middleware │
 │  dbconn/       → PostgreSQL connection (GORM)            │
 │  errors/       → Sentinel errors + HandleError()        │
 │  pagination/   → ParseFromQuery + PaginatedResponse     │
@@ -402,7 +402,7 @@ import (
 )
 
 type Config struct {
-    bcfg.BaseConfig                     // Port, Env, DatabaseURL, Auth0Domain, Auth0Audience, AllowedOrigins, BugsnagAPIKey
+    bcfg.BaseConfig                     // Port, Env, DatabaseURL, JWKSDomain, JWKSAudience, AllowedOrigins, BugsnagAPIKey
     AzureOpenAIKey      string
     AzureOpenAIEndpoint string
     AzureOpenAIModel    string
@@ -419,7 +419,7 @@ func Load() *Config {
 }
 ```
 
-`BaseConfig` ya trae Port, Env, DatabaseURL, Auth0Domain, Auth0Audience, AllowedOrigins, BugsnagAPIKey. Alizia solo agrega los campos específicos del proyecto (Azure OpenAI).
+`BaseConfig` ya trae Port, Env, DatabaseURL, JWKSDomain, JWKSAudience, AllowedOrigins, BugsnagAPIKey. Alizia solo agrega los campos específicos del proyecto (Azure OpenAI).
 
 ---
 
@@ -612,9 +612,9 @@ import (
 )
 
 func NewHandlers(uc *UseCases, cfg *config.Config) *entrypoints.WebHandlerContainer {
-    jwksValidator, err := tokens.NewAuth0Validator(cfg.Auth0Domain, cfg.Auth0Audience)
+    jwksValidator, err := tokens.NewJWKSValidator(cfg.JWKSDomain, cfg.JWKSAudience)
     if err != nil {
-        panic("invalid Auth0 config: " + err.Error())
+        panic("invalid JWT config: " + err.Error())
     }
 
     return &entrypoints.WebHandlerContainer{

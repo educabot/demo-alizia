@@ -23,8 +23,8 @@
 | Dependencia | Tipo | Bloqueante | Estado | Notas |
 |-------------|------|------------|--------|-------|
 | team-ai-toolkit | Librería Go | Sí (Fase 1) | Creado | Repo con tests, compila limpio |
-| auth-service | Microservicio | No (futuro) | Futuro (no bloqueante) | Planificado para reemplazar Auth0. Alizia v2 arranca con Auth0 |
-| Auth0 tenant config | Infra | Sí (Fase 1) | Configurar | Domain + audience + API (mismo sistema que tich-cronos) |
+| auth-service | Microservicio | No (futuro) | Futuro (no bloqueante) | Planificado para centralizar emisión de tokens. No bloqueante para Alizia |
+| JWT auth config | Infra | Sí (Fase 1) | Configurar | JWKS domain + audience (team-ai-toolkit/tokens) |
 | Railway account | Infra | Sí (Fase 1) | Configurar | Cuenta + proyecto + PostgreSQL |
 | PostgreSQL en Railway | Infra | Sí (Fase 1) | Provisionar | O DB externa |
 | Azure OpenAI access | Servicio | Sí (Fase 4) | Ya disponible | Mismo acceso que el POC |

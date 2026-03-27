@@ -1,24 +1,24 @@
-# Comparativa Arquitectonica: ai-assistant vs tich-cronos vs Alizia v2
+# Comparativa Arquitectonica: ai-assistant vs tich-cronos vs Alizia
 
 ## Resumen Ejecutivo
 
-| Aspecto | ai-assistant | tich-cronos | Alizia |
-|---------|-------------|-------------|--------|
-| **Go Version** | 1.25.0 | 1.23.7 | 1.26 |
-| **LOC** | ~15,000 (estimado) | ~41,008 | Nuevo proyecto |
-| **Framework** | Gin (abstraido via `web/`) | Gin (directo) | Gin (abstraido via `web/` + `boot/`) |
-| **ORM/DB** | Raw SQL (`database/sql`) | GORM v1.25.11 | sqlx (punto medio) |
-| **Base de datos** | SQLite WAL / PostgreSQL | PostgreSQL | PostgreSQL |
-| **DI** | Manual (1 archivo) | Google Wire (compile-time) | Manual (1 archivo por responsabilidad) |
-| **Deploy** | Docker Compose → VPS | Cloud Functions + local | Cloud Functions agrupadas (5 por módulo) |
-| **Auth** | Webhook secret simple | Auth0 JWT + Bearer | Auth0 JWT + Bearer (mismo sistema que tich-cronos) |
-| **Logging** | stdlib `log` | Interfaz custom + Bugsnag | slog (stdlib Go 1.21+) + Bugsnag |
-| **Testing** | 56 archivos, 190+ tests | 80+ archivos, target 80% | Target 80%, PostgreSQL real, sin E2E |
-| **Linting** | `go vet` basico | GolangCI Lint (20 linters) | GolangCI Lint (15+ linters) |
-| **Deps directas** | 5-6 | 25+ | 5 (+ team-ai-toolkit transitivas) |
-| **Libreria compartida** | No | No | team-ai-toolkit (web, boot, tokens, errors, etc.) |
-| **AI Provider** | Claude/OpenAI (failover) | Azure OpenAI | Azure OpenAI |
-| **Arquitectura** | Layered pragmatico | Clean Architecture estricto | Clean Architecture pragmatico |
+| Aspecto | ai-assistant | tich-cronos | Alizia                                             |
+|---------|-------------|-------------|----------------------------------------------------|
+| **Go Version** | 1.25.0 | 1.23.7 | 1.25.8                                             |
+| **LOC** | ~15,000 (estimado) | ~41,008 | Nuevo proyecto                                     |
+| **Framework** | Gin (abstraido via `web/`) | Gin (directo) | Gin (abstraido via `web/` + `boot/`)               |
+| **ORM/DB** | Raw SQL (`database/sql`) | GORM v1.25.11 | GORM v1.25.11                                 |
+| **Base de datos** | SQLite WAL / PostgreSQL | PostgreSQL | PostgreSQL                                         |
+| **DI** | Manual (1 archivo) | Google Wire (compile-time) | Manual (1 archivo por responsabilidad)             |
+| **Deploy** | Docker Compose → VPS | Cloud Functions + local | Cloud Functions agrupadas (5 por módulo)           |
+| **Auth** | Webhook secret simple | JWT + Bearer | JWT + Bearer (via team-ai-toolkit/tokens) |
+| **Logging** | stdlib `log` | Interfaz custom + Bugsnag | slog (stdlib Go 1.21+) + Bugsnag                   |
+| **Testing** | 56 archivos, 190+ tests | 80+ archivos, target 80% | Target 80%, PostgreSQL real, sin E2E               |
+| **Linting** | `go vet` basico | GolangCI Lint (20 linters) | GolangCI Lint (15+ linters)                        |
+| **Deps directas** | 5-6 | 25+ | 5 (+ team-ai-toolkit transitivas)                  |
+| **Libreria compartida** | No | No | team-ai-toolkit (web, boot, tokens, errors, etc.)  |
+| **AI Provider** | Claude/OpenAI (failover) | Azure OpenAI | Azure OpenAI                                       |
+| **Arquitectura** | Layered pragmatico | Clean Architecture estricto | Clean Architecture pragmatico                      |
 
 ---
 
@@ -67,7 +67,7 @@ tich-cronos/
 └── test/                  # Setup E2E
 ```
 
-### Alizia v2 (usa team-ai-toolkit)
+### Alizia (usa team-ai-toolkit)
 ```
 alizia-api/
 ├── cmd/                   # Entry point + DI manual (1 archivo por responsabilidad)
@@ -101,7 +101,7 @@ team-ai-toolkit/
 ├── web/                   # Abstraccion HTTP (Request, Response, Handler)
 │   └── gin/               # Adaptador Gin (Adapt, AdaptMiddleware)
 ├── boot/                  # Server bootstrap (NewEngine, NewServer, Shutdown)
-├── tokens/                # JWT validation (Auth0 JWKS) + middleware + claims
+├── tokens/                # JWT validation (JWKS) + middleware + claims
 ├── dbconn/                # PostgreSQL connection con sqlx
 ├── errors/                # Sentinel errors + HandleError()
 ├── pagination/            # ParseFromQuery + PaginatedResponse
@@ -313,7 +313,7 @@ container := NewHandlers(usecases, cfg)
 **Alizia toma:**
 - De ai-assistant: struct inmutable, sin singleton, sin godotenv
 - De tich-cronos: carpeta `config/` separada, soporte multi-ambiente
-- Nuevo: `BaseConfig` en team-ai-toolkit con campos comunes (Port, Env, DatabaseURL, Auth0Domain, Auth0Audience, BugsnagAPIKey), cada proyecto embebe y agrega los suyos
+- Nuevo: `BaseConfig` en team-ai-toolkit con campos comunes (Port, Env, DatabaseURL, JWKSDomain, JWKSAudience, BugsnagAPIKey), cada proyecto embebe y agrega los suyos
 
 ---
 
@@ -418,7 +418,7 @@ container := NewHandlers(usecases, cfg)
 2. Testing robusto (80%, E2E, PostgreSQL real)
 3. CI completo (5 pipelines + pre-commit)
 4. Containers agrupan features (Wire DI)
-5. Multi-tenancy + Auth profesional (Auth0)
+5. Multi-tenancy + Auth profesional (JWT via team-ai-toolkit/tokens)
 
 ### Alizia - Top 5 Fortalezas
 1. Lo mejor de ambos (clean arch + simplicidad)
@@ -474,7 +474,7 @@ container := NewHandlers(usecases, cfg)
 - ~~Wire~~ → DI manual
 - ~~Singleton config~~ → struct inmutable
 - Cloud Functions agrupadas por módulo (5 funciones, no 55+ ni Cloud Run)
-- Auth0 se mantiene (mismo sistema que tich-cronos). Auth service propio es plan futuro
+- JWT auth via team-ai-toolkit/tokens se mantiene. Auth service propio es plan futuro
 - ~~stdlib log~~ → slog
 - Bugsnag se mantiene (stack de la empresa)
 - ~~Custom error wrapping~~ → fmt.Errorf estandar

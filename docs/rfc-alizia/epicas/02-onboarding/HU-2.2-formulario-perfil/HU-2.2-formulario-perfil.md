@@ -9,7 +9,7 @@
 
 ## Contexto
 
-Cada organización puede necesitar datos distintos de sus usuarios. Una provincia puede pedir disciplinas y años de experiencia docente; otra puede no pedir nada adicional al nombre y email que ya vienen de Auth0.
+Cada organización puede necesitar datos distintos de sus usuarios. Una provincia puede pedir disciplinas y años de experiencia docente; otra puede no pedir nada adicional al nombre y email que ya vienen del JWT.
 
 Los campos del formulario se definen en la configuración de la organización. Si la org no tiene campos configurados, este paso se salta y se va directo al product tour.
 
@@ -35,6 +35,13 @@ Una provincia podría configurar:
 | Niveles en los que trabajás | Selección múltiple | Sí | Inicial, Primario, Secundario, Superior |
 
 Otra provincia podría no configurar ningún campo → el paso se salta.
+
+## Tareas
+
+| # | Tarea | Archivo principal | Estado |
+|---|-------|-------------------|--------|
+| T-2.2.1 | [Migración — columna profile_data](./tareas/T-2.2.1-migracion.md) | `migrations/XXX_add_profile_data_to_users.sql` | ⬜ |
+| T-2.2.2 | [Endpoint de perfil](./tareas/T-2.2.2-endpoint-perfil.md) | `src/core/usecases/onboarding/save_profile.go` | ⬜ |
 
 ## Dependencias
 

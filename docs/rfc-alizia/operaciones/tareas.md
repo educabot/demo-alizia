@@ -8,7 +8,7 @@
 | 1.2 | Configurar go.mod con team-ai-toolkit | ⬜ |
 | 1.3 | Configurar CI (GitHub Actions: test + lint) | ⬜ |
 | 1.4 | Provisionar Railway + PostgreSQL | ⬜ |
-| 1.5 | Configurar Auth0 tenant (domain, audience, API) para staging + prod | ⬜ |
+| 1.5 | Configurar JWT auth (JWKS domain, audience) para staging + prod | ⬜ |
 | 1.6 | Deploy inicial (/health responde) | ⬜ |
 | 1.7 | Integrar auth middleware | ⬜ |
 

@@ -67,6 +67,12 @@ Cada paso tiene:
 - Tour: usa el default
 - Saltear: permitido
 
+## Tareas
+
+| # | Tarea | Archivo principal | Estado |
+|---|-------|-------------------|--------|
+| T-2.4.1 | [Schema config onboarding](./tareas/T-2.4.1-schema-config-onboarding.md) | `src/core/entities/onboarding_config.go` | ⬜ |
+
 ## Dependencias
 
 - [HU-1.2: Modelo de usuarios y roles](../../01-roles-accesos/HU-1.2-modelo-usuarios-roles/HU-1.2-modelo-usuarios-roles.md) — La config vive en la tabla de organizaciones

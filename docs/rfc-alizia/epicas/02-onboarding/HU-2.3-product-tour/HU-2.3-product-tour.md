@@ -63,6 +63,12 @@ Después de completar el formulario de perfil (o directamente si no hay formular
   └── Marcar onboarding como completado → Ir a home
 ```
 
+## Tareas
+
+| # | Tarea | Archivo principal | Estado |
+|---|-------|-------------------|--------|
+| T-2.3.1 | [Endpoint tour steps](./tareas/T-2.3.1-endpoint-tour-steps.md) | `src/core/usecases/onboarding/get_tour_steps.go` | ⬜ |
+
 ## Dependencias
 
 - [HU-2.1: Detección de primer ingreso](../HU-2.1-deteccion-primer-ingreso/HU-2.1-deteccion-primer-ingreso.md) — El flujo de onboarding debe estar activo

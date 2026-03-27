@@ -1,6 +1,6 @@
 # Backend — Endpoints API
 
-Todos los endpoints requieren autenticación via Bearer token (JWT de Auth0) salvo `/health`.
+Todos los endpoints requieren autenticación via Bearer token (JWT via team-ai-toolkit/tokens) salvo `/health`.
 
 ---
 

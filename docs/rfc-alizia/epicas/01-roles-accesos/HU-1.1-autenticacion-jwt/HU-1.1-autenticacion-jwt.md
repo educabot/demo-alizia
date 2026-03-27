@@ -1,4 +1,4 @@
-# HU-1.1: Autenticación con Auth0
+# HU-1.1: Autenticación JWT
 
 > Como usuario, necesito autenticarme con email y contraseña para acceder a la plataforma con mis permisos correspondientes.
 
@@ -10,15 +10,15 @@
 
 ## Criterios de aceptación
 
-- [ ] Auth0 tenant configurado con domain + audience para staging
+- [ ] JWT auth configurado con JWKS domain + audience para staging
 - [ ] JWT middleware valida tokens via JWKS (team-ai-toolkit/tokens)
 - [ ] Claims extraídos del JWT: user_id, org_id, roles, email, name
 - [ ] Tenant middleware inyecta org_id en el contexto
 - [ ] Request sin token → 401 `missing_token`
 - [ ] Request con token inválido → 401 `invalid_token`
 - [ ] Request con token de otra org → datos filtrados por org_id
-- [ ] Refresh token rotation configurada en Auth0 (30 días abs, 7 días inactividad)
-- [ ] Endpoint POST /auth/logout redirige a Auth0 logout
+- [ ] Refresh token rotation configurada (30 días abs, 7 días inactividad)
+- [ ] Endpoint POST /auth/logout invalida sesión
 - [ ] CORS configurado para orígenes permitidos via env var
 - [ ] Rate limiting en endpoints de IA (generate, chat)
 
@@ -26,17 +26,17 @@
 
 | # | Tarea | Archivo | Estado |
 |---|-------|---------|--------|
-| 1.1.1 | [Configurar Auth0 tenant](./tareas/T-1.1.1-configurar-auth0.md) | — | ⬜ |
+| 1.1.1 | [Configurar JWT auth](./tareas/T-1.1.1-configurar-jwt.md) | — | ⬜ |
 | 1.1.2 | [Integrar JWT middleware (JWKS)](./tareas/T-1.1.2-jwt-middleware.md) | cmd/main.go | ⬜ |
 | 1.1.3 | [Integrar tenant middleware](./tareas/T-1.1.3-tenant-middleware.md) | cmd/main.go | ⬜ |
-| 1.1.4 | [Config: Auth0 env vars](./tareas/T-1.1.4-config-auth0.md) | config/config.go | ⬜ |
+| 1.1.4 | [Config: JWT auth env vars](./tareas/T-1.1.4-config-jwt.md) | config/config.go | ⬜ |
 | 1.1.5 | [Tests de autenticación](./tareas/T-1.1.5-tests-auth.md) | — | ⬜ |
 | 1.1.6 | [Refresh, logout y CORS](./tareas/T-1.1.6-refresh-logout-cors.md) | cmd/main.go | ⬜ |
 
 ## Dependencias
 
 - Épica 0 completada (/health respondiendo)
-- Auth0 tenant creado (mismo sistema que tich-cronos)
+- JWT auth configurado (JWKS domain + audience)
 - team-ai-toolkit/tokens funcional
 
 ## Test cases

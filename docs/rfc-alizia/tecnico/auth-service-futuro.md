@@ -1,25 +1,25 @@
 # Auth Service — Microservicio de autenticación Educabot
 
-> **NOTA: Este documento describe el auth-service propio planificado para el futuro. Alizia v2 arranca con Auth0 (mismo sistema que tich-cronos). El auth-service NO es una dependencia bloqueante para el lanzamiento de Alizia v2.**
+> **NOTA: Este documento describe el auth-service propio planificado para el futuro. Alizia arranca con JWT authentication (via team-ai-toolkit/tokens). El auth-service NO es una dependencia bloqueante para el lanzamiento de Alizia.**
 
 ## Qué es
 
-Microservicio Go planificado para reemplazar Auth0 en el futuro. Será el **único servicio que maneje credenciales y emita tokens**. Todos los demás proyectos (Alizia, tich-cronos, futuros) validarán tokens con la public key via team-ai-toolkit/tokens.
+Microservicio Go planificado para centralizar la emisión de tokens en el futuro. Será el **único servicio que maneje credenciales y emita tokens**. Todos los demás proyectos (Alizia, tich-cronos, futuros) validarán tokens con la public key via team-ai-toolkit/tokens.
 
-**Estado actual:** Alizia v2 y tich-cronos usan Auth0. Este auth-service es un plan futuro.
+**Estado actual:** Alizia y tich-cronos usan JWT authentication (via team-ai-toolkit/tokens). Este auth-service es un plan futuro.
 
 ---
 
 ## Contexto: Qué reemplazará (FUTURO)
 
-| Hoy (Auth0 — sistema actual) | Futuro (auth-service — planificado) |
+| Hoy (JWT via team-ai-toolkit/tokens — sistema actual) | Futuro (auth-service — planificado) |
 |---|---|
-| Login: `POST auth0.com/oauth/token` con grant_type=password | Login: `POST auth-service/auth/login` con bcrypt propio |
-| Signup: `POST auth0.com/dbconnections/signup` | Signup: `POST auth-service/auth/register` |
-| JWT: Auth0 firma con su key, cronos valida con JWKS | JWT: auth-service firma con private key RSA, backends validan con public key |
-| Canvas OAuth: cronos intercambia code → crea usuario en Auth0 con password sintético | Canvas OAuth: cronos intercambia code → crea usuario directo en auth-service |
+| Login: JWT emitido por el sistema de autenticación actual | Login: `POST auth-service/auth/login` con bcrypt propio |
+| Signup: gestionado externamente | Signup: `POST auth-service/auth/register` |
+| JWT: firmado externamente, backends validan con JWKS via team-ai-toolkit/tokens | JWT: auth-service firma con private key RSA, backends validan con public key |
+| Canvas OAuth: cronos intercambia code → crea usuario | Canvas OAuth: cronos intercambia code → crea usuario directo en auth-service |
 | Refresh tokens: NO EXISTEN | Refresh tokens: rotación automática |
-| Password reset: NO EXISTE (Auth0 lo tenía pero no se usaba) | Password reset: email con token temporal |
+| Password reset: NO EXISTE | Password reset: email con token temporal |
 | Rate limiting login: NO EXISTE | Rate limiting: 5 intentos en 15 min por email |
 | Roles: hardcoded en DB de cronos | Roles: centralizados en auth-service, dinámicos por producto |
 
@@ -639,39 +639,38 @@ require (
 
 ---
 
-## Migración desde Auth0 (PLAN FUTURO)
+## Migración al auth-service (PLAN FUTURO)
 
-> Esta migración se realizará después del lanzamiento de Alizia v2. Alizia v2 arranca con Auth0.
+> Esta migración se realizará después del lanzamiento de Alizia. Alizia arranca con JWT authentication via team-ai-toolkit/tokens.
 
-### Fase 0: Alizia v2 lanza con Auth0 (ACTUAL)
-- Alizia v2 usa Auth0 para autenticación (mismo sistema que tich-cronos)
-- team-ai-toolkit/tokens valida JWT via Auth0 JWKS
+### Fase 0: Alizia lanza con JWT auth (ACTUAL)
+- Alizia usa JWT authentication via team-ai-toolkit/tokens
+- team-ai-toolkit/tokens valida JWT via JWKS
 - No se necesita RSA key pair propia ni auth-service
 
 ### Fase 1: Build auth service (FUTURO)
 - Implementar login, register, refresh, password reset
-- Migrar datos: exportar usuarios de Auth0 → importar en auth_db
-- Los passwords de Auth0 no se pueden exportar → forzar password reset para todos
+- Migrar datos: exportar usuarios del sistema actual → importar en auth_db
+- Los passwords del sistema actual no se pueden exportar → forzar password reset para todos
 
-### Fase 2: Migrar Alizia v2 (FUTURO)
-- Cambiar Alizia de Auth0 a auth-service
+### Fase 2: Migrar Alizia (FUTURO)
+- Cambiar Alizia del sistema actual a auth-service
 - team-ai-toolkit/tokens pasa de validar via JWKS a validar via RSA public key
 
 ### Fase 3: Migrar TiCh/Tuni (FUTURO)
 - Canvas OAuth callback apunta al auth-service en vez de cronos
-- cronos deja de llamar a Auth0, valida JWT del auth-service
+- cronos valida JWT del auth-service
 - Mantener Canvas LTI launch
 
-### Fase 4: Deprecar Auth0 (FUTURO)
-- Verificar que no queden llamadas a Auth0
-- Desactivar tenant Auth0
-- Cancelar suscripción
+### Fase 4: Deprecar sistema de auth actual (FUTURO)
+- Verificar que todos los proyectos usen auth-service
+- Desactivar sistema de autenticación anterior
 
 ---
 
 ## Diferencias con la arquitectura de Alizia
 
-| Aspecto | Alizia v2 | Auth Service |
+| Aspecto | Alizia | Auth Service |
 |---|---|---|
 | **Tamaño** | Grande (26+ tablas, 5 módulos) | Chico (6 tablas, 1 módulo con sub-features) |
 | **Deploy** | Cloud Functions agrupadas (5) | Cloud Function individual (1) |
@@ -686,7 +685,7 @@ require (
 ## Resumen
 
 El auth service es un microservicio Go planificado para el futuro que:
-1. **Reemplazará Auth0** completamente para login, register, y gestión de tokens
+1. **Centralizará** login, register, y gestión de tokens
 2. **Firma JWT RS256** con private key propia
 3. **Agrega lo que hoy no existe**: refresh tokens, password reset, rate limiting
 4. **Mantiene Canvas** OAuth y LTI para TiCh/Tuni (deshabilitado por config si no se necesita)

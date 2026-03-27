@@ -56,7 +56,7 @@ Antes de construir cualquier feature, el equipo necesita un proyecto base funcio
 | ORM | GORM | Estándar de la empresa (tich-cronos) |
 | Base de datos | PostgreSQL | Multi-tenant, JSONB, enums |
 | Migraciones | golang-migrate | Up/down, embebidas en binario |
-| Auth | Auth0 JWT + Bearer tokens (via team-ai-toolkit/tokens) | Validación via JWKS |
+| Auth | JWT + Bearer tokens (via team-ai-toolkit/tokens) | Validación via JWKS |
 | AI | Azure OpenAI SDK | Requerimiento de negocio |
 | Logging | slog via team-ai-toolkit/applog | Structured logging nativo |
 | Error tracking | Bugsnag via team-ai-toolkit/applog/bugsnag | Stack actual empresa |
@@ -76,7 +76,7 @@ Antes de construir cualquier feature, el equipo necesita un proyecto base funcio
 │  web/          → Abstracción HTTP (Request, Response)   │
 │  web/gin/      → Adaptador Gin (Adapt, AdaptMiddleware) │
 │  boot/         → Server bootstrap (NewEngine, NewServer) │
-│  tokens/       → Auth0 JWKS validation, Claims, middleware │
+│  tokens/       → JWT JWKS validation, Claims, middleware │
 │  dbconn/       → PostgreSQL connection (GORM)            │
 │  errors/       → Sentinel errors + HandleError()        │
 │  pagination/   → ParseFromQuery + PaginatedResponse     │

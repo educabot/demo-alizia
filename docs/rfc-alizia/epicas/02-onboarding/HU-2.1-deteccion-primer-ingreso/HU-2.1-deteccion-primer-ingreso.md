@@ -40,9 +40,16 @@ Login exitoso → ¿Completó onboarding?
     Ir a home
 ```
 
+## Tareas
+
+| # | Tarea | Archivo principal | Estado |
+|---|-------|-------------------|--------|
+| T-2.1.1 | [Migración — columna onboarding](./tareas/T-2.1.1-migracion.md) | `migrations/XXX_add_onboarding_to_users.sql` | ⬜ |
+| T-2.1.2 | [Entity y endpoint de onboarding](./tareas/T-2.1.2-entity-endpoint.md) | `src/core/usecases/onboarding/complete.go` | ⬜ |
+
 ## Dependencias
 
-- [HU-1.1: Autenticación con Auth0](../../01-roles-accesos/HU-1.1-autenticacion-auth0/HU-1.1-autenticacion-auth0.md) — JWT y middleware de auth deben estar funcionando
+- [HU-1.1: Autenticación JWT](../../01-roles-accesos/HU-1.1-autenticacion-jwt/HU-1.1-autenticacion-jwt.md) — JWT y middleware de auth deben estar funcionando
 - [HU-1.2: Modelo de usuarios y roles](../../01-roles-accesos/HU-1.2-modelo-usuarios-roles/HU-1.2-modelo-usuarios-roles.md) — Tabla `users` debe existir
 
 ## Notas

@@ -2,9 +2,9 @@
 
 ## Qué es
 
-Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene toda la infraestructura común entre los proyectos backend de Educabot. Cualquier proyecto nuevo importa `team-ai-toolkit` y arranca con: servidor HTTP, auth JWT (via Auth0 JWKS), conexión a DB, logging, paginación, errores estandarizados y abstracción de framework.
+Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene toda la infraestructura común entre los proyectos backend de Educabot. Cualquier proyecto nuevo importa `team-ai-toolkit` y arranca con: servidor HTTP, auth JWT (via team-ai-toolkit/tokens JWKS), conexión a DB, logging, paginación, errores estandarizados y abstracción de framework.
 
-> **NOTA:** Alizia y tich-cronos arrancan con **Auth0** para autenticación. El auth-service propio descrito en este documento es un **plan futuro**. El diagrama de ecosistema a continuación muestra la arquitectura futura; la arquitectura actual usa Auth0 en lugar del auth-service.
+> **NOTA:** Alizia y tich-cronos usan **JWT authentication via team-ai-toolkit/tokens**. El auth-service propio descrito en este documento es un **plan futuro**. El diagrama de ecosistema a continuación muestra la arquitectura futura; la arquitectura actual usa JWT via team-ai-toolkit/tokens en lugar del auth-service.
 
 **No contiene lógica de dominio.** Solo infraestructura que no depende de ningún proyecto específico.
 
@@ -14,21 +14,18 @@ Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene tod
 
 ```
                     ┌──────────────────────┐
-                    │    Auth0 (SaaS)       │  ← Servicio actual de autenticación
-                    │                      │
-                    │  - Login / Register   │
+                    │  JWT Auth Service     │  ← Autenticación via JWT
+                    │  (team-ai-toolkit/   │
+                    │   tokens)             │
                     │  - JWT (JWKS)         │
-                    │  - Refresh tokens     │
-                    │  - Password reset     │
-                    │  - organizations      │
-                    │  - users + roles      │
+                    │  - Bearer tokens      │
                     │                      │
                     │  (Futuro: auth-service│
-                    │   propio reemplaza    │
-                    │   Auth0)              │
+                    │   propio centraliza   │
+                    │   emisión de tokens)  │
                     └──────────┬───────────┘
                                │
-                               │ JWT firmado por Auth0
+                               │ JWT firmado
                                │
           ┌────────────────────┼─────────────────────┐
           │                    │                      │
@@ -56,33 +53,33 @@ Módulo Go reutilizable (`github.com/educabot/team-ai-toolkit`) que contiene tod
 
 | Repo | Tipo | Propósito |
 |------|------|-----------|
-| `educabot/auth-service` | Microservicio (futuro, no en uso) | Planificado para reemplazar Auth0 en el futuro. Emitirá y gestionará JWT con base de datos propia |
+| `educabot/auth-service` | Microservicio (futuro, no en uso) | Planificado para centralizar emisión de JWT en el futuro. Emitirá y gestionará JWT con base de datos propia |
 | `educabot/team-ai-toolkit` | Librería Go (no se deploya) | Infraestructura compartida. Se importa en `go.mod` |
 | `educabot/alizia-api` | Monolito (deploy propio) | Plataforma Alizia. Importa team-ai-toolkit |
 | `educabot/tich-cronos` | Monolito (deploy propio) | Plataforma TiCh. Importa team-ai-toolkit |
 
 ---
 
-## Autenticación actual — Auth0
+## Autenticación actual — JWT via team-ai-toolkit/tokens
 
 ### Qué se usa hoy
 
-Alizia y tich-cronos usan **Auth0** como servicio de autenticación. Auth0 maneja credenciales, emite tokens JWT, y expone un endpoint JWKS para validación.
+Alizia y tich-cronos usan **JWT authentication via team-ai-toolkit/tokens**. El sistema de autenticación emite tokens JWT, y expone un endpoint JWKS para validación.
 
-Los backends validan los JWT usando **Auth0 JWKS** (JSON Web Key Set) via `team-ai-toolkit/tokens`. No se necesita una RSA key pair propia.
+Los backends validan los JWT usando **JWKS** (JSON Web Key Set) via `team-ai-toolkit/tokens`. No se necesita una RSA key pair propia.
 
 ```
-Login (HTTP call a Auth0, solo 1 vez)
-  → Auth0 devuelve JWT
+Login (1 vez)
+  → Sistema de auth devuelve JWT
     → Frontend guarda JWT
       → Cada request envía JWT en Authorization header
-        → Backend valida JWT via Auth0 JWKS (cached, sin HTTP en cada request)
+        → Backend valida JWT via JWKS (cached, sin HTTP en cada request)
           → Extrae user_id, org_id, roles del token
 ```
 
 ### Auth Service propio (FUTURO)
 
-> El auth-service propio está planificado como reemplazo de Auth0 a futuro. No es necesario para el lanzamiento de Alizia. Ver ARQUITECTURA-AUTH-SERVICE.md para los detalles del diseño futuro.
+> El auth-service propio está planificado para centralizar la emisión de tokens a futuro. No es necesario para el lanzamiento de Alizia. Ver ARQUITECTURA-AUTH-SERVICE.md para los detalles del diseño futuro.
 
 ---
 
@@ -120,12 +117,12 @@ team-ai-toolkit/
 │                                        #   MaxOpenConns: 25, MaxIdleConns: 10
 │                                        #   ConnMaxLifetime: 5min
 │
-├── tokens/                              # Validación JWT (Auth0 JWKS o RSA public key)
+├── tokens/                              # Validación JWT (JWKS o RSA public key)
 │   ├── jwt.go                           # ValidateJWT(token, validator) → (*Claims, error)
-│   │                                    #   Valida JWT via Auth0 JWKS (o RSA public key futuro)
+│   │                                    #   Valida JWT via JWKS (o RSA public key futuro)
 │   │                                    #   Verifica exp, iat
-│   ├── auth0.go                         # NewAuth0Validator(domain, audience) → Validator
-│   │                                    #   Descarga JWKS de Auth0 y cachea las keys
+│   ├── jwks.go                          # NewJWKSValidator(domain, audience) → Validator
+│   │                                    #   Descarga JWKS y cachea las keys
 │   ├── claims.go                        # Claims struct
 │   │                                    #   UserID int64, OrgID int64
 │   │                                    #   Roles []string, Email string, Name string
@@ -180,7 +177,7 @@ team-ai-toolkit/
 │   ├── env.go                           # EnvOr(key, fallback) string
 │   │                                    #   MustEnv(key) string — panic si falta
 │   └── base.go                          # BaseConfig struct
-│                                        #   Port, Env, DatabaseURL, Auth0Domain, Auth0Audience
+│                                        #   Port, Env, DatabaseURL, JWKSDomain, JWKSAudience
 │                                        #   AllowedOrigins []string
 │                                        #   LoadBase() → BaseConfig
 │
@@ -223,7 +220,7 @@ package config
 import bcfg "github.com/educabot/team-ai-toolkit/config"
 
 type Config struct {
-    bcfg.BaseConfig                     // Port, Env, DatabaseURL, Auth0Domain, Auth0Audience, AllowedOrigins
+    bcfg.BaseConfig                     // Port, Env, DatabaseURL, JWKSDomain, JWKSAudience, AllowedOrigins
     AzureOpenAIKey      string
     AzureOpenAIEndpoint string
     AzureOpenAIModel    string
@@ -256,8 +253,8 @@ func NewApp(cfg *config.Config) *App {
     db := dbconn.MustConnect(cfg.DatabaseURL)
     engine := boot.NewEngine(cfg.Env, cfg.AllowedOrigins)
 
-    // Auth middleware — valida JWT via Auth0 JWKS (mismo sistema que tich-cronos)
-    validator, _ := tokens.NewAuth0Validator(cfg.Auth0Domain, cfg.Auth0Audience)
+    // Auth middleware — valida JWT via JWKS (team-ai-toolkit/tokens)
+    validator, _ := tokens.NewJWKSValidator(cfg.JWKSDomain, cfg.JWKSAudience)
     authMw := tokens.NewAuthInterceptor(validator)
     tenantMw := tokens.NewTenantInterceptor()
 
@@ -311,14 +308,14 @@ func Load() *Config {
 import (
     "github.com/educabot/team-ai-toolkit/boot"
     "github.com/educabot/team-ai-toolkit/dbconn"
-    "github.com/educabot/team-ai-toolkit/tokens"     // MISMA validación Auth0 JWKS
+    "github.com/educabot/team-ai-toolkit/tokens"     // MISMA validación JWT JWKS
     "github.com/educabot/team-ai-toolkit/applog"
 )
 ```
 
 ### Auth Service (FUTURO — no en uso actualmente)
 
-> El auth-service es un plan futuro para reemplazar Auth0. Actualmente se usa Auth0 directamente.
+> El auth-service es un plan futuro para centralizar la emisión de tokens. Actualmente se usa JWT via team-ai-toolkit/tokens.
 
 ```go
 // auth-service/go.mod (FUTURO)
@@ -356,7 +353,7 @@ import (
 | `web/gin/` | Adaptador Gin | Todos (hoy) |
 | `boot/` | Server lifecycle, timeouts, shutdown | Todos |
 | `dbconn/` | Conexión PostgreSQL con sqlx | Todos |
-| `tokens/` | Validación JWT via Auth0 JWKS (o RSA key futuro) | Alizia, tich-cronos, futuros |
+| `tokens/` | Validación JWT via JWKS (o RSA key futuro) | Alizia, tich-cronos, futuros |
 | `applog/` | Setup de slog | Todos |
 | `pagination/` | Parse page/per_page + response wrapper | Todos |
 | `transactions/` | RunInTx(), DBTX interface | Todos |
@@ -376,7 +373,7 @@ import (
 | Config struct completo | Cada proyecto tiene campos distintos | `proyecto/config/` |
 | AI client | Alizia usa Azure OpenAI, cronos puede usar otro | `proyecto/src/repositories/ai/` |
 | Mocks | Mockean interfaces propias del proyecto | `proyecto/src/mocks/` |
-| JWT issuer (private key) | Solo el auth service (futuro) firmará tokens. Hoy Auth0 firma | `auth-service/internal/jwt/` (futuro) |
+| JWT issuer (private key) | Solo el auth service (futuro) firmará tokens | `auth-service/internal/jwt/` (futuro) |
 | Prompts/schemas AI | Contenido específico del producto | `proyecto/src/repositories/ai/prompts/` |
 
 ---
@@ -409,7 +406,7 @@ educabot/
 │   ├── web/                     #   Abstracción HTTP
 │   ├── boot/                    #   Server bootstrap
 │   ├── dbconn/                  #   PostgreSQL connection
-│   ├── tokens/                  #   JWT validation (Auth0 JWKS)
+│   ├── tokens/                  #   JWT validation (JWKS)
 │   ├── applog/                  #   Logging
 │   ├── pagination/              #   Paginación
 │   ├── transactions/            #   Transacciones DB
@@ -447,7 +444,7 @@ educabot/
 | **¿Se deploya?** | No. Se importa como dependencia en `go.mod` |
 | **¿Qué contiene?** | web/, boot/, dbconn/, tokens/, applog/, pagination/, transactions/, errors/, config/ |
 | **¿Quién lo usa?** | Alizia, tich-cronos, auth-service, futuros proyectos |
-| **¿Qué es auth-service?** | Microservicio propio planificado para el futuro. Actualmente se usa Auth0 (mismo sistema que tich-cronos) |
-| **¿Cómo se relacionan?** | Auth0 firma tokens. team-ai-toolkit/tokens/ los valida via JWKS. Los proyectos importan team-ai-toolkit |
+| **¿Qué es auth-service?** | Microservicio propio planificado para el futuro. Actualmente se usa JWT via team-ai-toolkit/tokens |
+| **¿Cómo se relacionan?** | El sistema de auth firma tokens. team-ai-toolkit/tokens/ los valida via JWKS. Los proyectos importan team-ai-toolkit |
 | **¿Qué NO va?** | Lógica de dominio, entities, usecases, handlers, migraciones |
 | **¿Cómo se versiona?** | Semver via Go modules (v1.0.0, v1.1.0, v2.0.0) |

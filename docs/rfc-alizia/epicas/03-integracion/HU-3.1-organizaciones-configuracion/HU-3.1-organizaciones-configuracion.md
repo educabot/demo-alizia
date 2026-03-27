@@ -33,7 +33,7 @@
 ## Dependencias
 
 - [Épica 0: Setup](../../00-setup-infraestructura/00-setup-infraestructura.md) completada (repo, CI, DB)
-- [HU-1.1: Autenticación](../../01-roles-accesos/HU-1.1-autenticacion-auth0/HU-1.1-autenticacion-auth0.md) — JWT con org_id en claims
+- [HU-1.1: Autenticación JWT](../../01-roles-accesos/HU-1.1-autenticacion-jwt/HU-1.1-autenticacion-jwt.md) — JWT con org_id en claims
 
 ## Test cases
 

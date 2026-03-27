@@ -1,4 +1,4 @@
-# Épicas — Alizia v2
+# Épicas — Alizia
 
 ## Índice
 

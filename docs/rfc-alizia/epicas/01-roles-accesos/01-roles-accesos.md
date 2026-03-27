@@ -21,7 +21,7 @@ La plataforma opera con múltiples roles (coordinador, docente, y potencialmente
 
 **Incluye:**
 
-- Autenticación de usuarios (email + password via Auth0)
+- Autenticación de usuarios (email + password via JWT authentication)
 - Roles de coordinator, teacher y admin con permisos diferenciados
 - Asignación de usuarios a organizaciones y cursos
 
@@ -41,7 +41,7 @@ La plataforma opera con múltiples roles (coordinador, docente, y potencialmente
 
 | # | Historia | Descripción | Fase | Tareas |
 |---|---------|-------------|------|--------|
-| HU-1.1 | [Autenticación con Auth0](./HU-1.1-autenticacion-auth0/HU-1.1-autenticacion-auth0.md) | JWT middleware, JWKS validation, tenant middleware, refresh, CORS | Fase 1 | 6 |
+| HU-1.1 | [Autenticación JWT](./HU-1.1-autenticacion-jwt/HU-1.1-autenticacion-jwt.md) | JWT middleware, JWKS validation, tenant middleware, refresh, CORS | Fase 1 | 6 |
 | HU-1.2 | [Modelo de usuarios y roles](./HU-1.2-modelo-usuarios-roles/HU-1.2-modelo-usuarios-roles.md) | Migración, entities, repository GORM, seed | Fase 2 | 6 |
 | HU-1.3 | [Middleware de autorización](./HU-1.3-middleware-autorizacion/HU-1.3-middleware-autorizacion.md) | RequireRole, interceptor chain, error handling | Fase 2 | 4 |
 | HU-1.4 | [Asignación organizacional](./HU-1.4-asignacion-organizacional/HU-1.4-asignacion-organizacional.md) | Area coordinators, admin endpoints, multi-tenancy | Fase 2 | 5 |
@@ -54,7 +54,7 @@ La plataforma opera con múltiples roles (coordinador, docente, y potencialmente
 
 - Un usuario puede tener **múltiples roles dentro de una misma organización**. Un docente puede ser profesor de dos materias y coordinador de un área — no hay restricción. Idealmente la experiencia no necesita "Escoger un rol" para el usuario.
 - En el MVP, si un usuario trabaja en **dos instituciones distintas**, tiene dos cuentas separadas (un usuario por organización).
-- El mecanismo de autenticación puede variar por provincia: mail + contraseña, cuentas institucionales (ej: Google Workspace del ministerio), u otros proveedores. Para el MVP, limitamos a mail + password via Auth0 (mismo sistema que tich-cronos).
+- El mecanismo de autenticación puede variar por provincia: mail + contraseña, cuentas institucionales (ej: Google Workspace del ministerio), u otros proveedores. Para el MVP, limitamos a mail + password via JWT authentication (team-ai-toolkit/tokens).
 - Los permisos sobre el documento de coordinación (quién edita, quién solo visualiza) son **configurables por organización**. No se hardcodea que "el coordinador edita y el docente solo ve" porque hay provincias donde el docente también interviene.
 
 ## Decisiones de cada cliente

@@ -59,7 +59,7 @@ Los coordinadores y docentes de instituciones educativas planifican anualmente d
 - **POC actual**: Backend en FastAPI (Python), frontend vanilla HTML/JS, 10 tablas, sin multi-tenancy
 - **POC validó**: El flujo coordinador → documento de coordinación → docente → lesson plan funciona
 - **v2 es un rewrite completo**: Backend en Go, frontend en React, 26+ tablas, multi-tenant, IA integrada
-- **Dos productos comparten infraestructura**: Alizia + TiCh/Tuni usan Auth0 para autenticación y team-ai-toolkit como librería compartida
+- **Dos productos comparten infraestructura**: Alizia + TiCh/Tuni usan JWT (via team-ai-toolkit/tokens) para autenticación y team-ai-toolkit como librería compartida
 - **Arquitectura ya definida**: Ver [arquitectura.md](./tecnico/arquitectura.md)
 
 ---
@@ -74,7 +74,7 @@ Los coordinadores y docentes de instituciones educativas planifican anualmente d
 - Planificación docente clase a clase heredada del documento de coordinación
 - Sistema de recursos (guías, fichas) con generación IA configurable por org
 - Clases compartidas (coordinadas) como diferenciador de producto
-- Auth via Auth0 (mismo sistema que tich-cronos), con posibilidad de migrar a auth-service propio en el futuro
+- Auth via JWT (team-ai-toolkit/tokens), con posibilidad de migrar a auth-service propio en el futuro
 
 ### No-objetivos
 
@@ -126,7 +126,7 @@ Los coordinadores y docentes de instituciones educativas planifican anualmente d
 
 | Fase | Qué incluye | Dependencia |
 |------|-------------|-------------|
-| 1 — Setup | Repo, CI/CD, Railway, DB, auth integration (Auth0), /health | team-ai-toolkit |
+| 1 — Setup | Repo, CI/CD, Railway, DB, auth integration (JWT), /health | team-ai-toolkit |
 | 2 — Admin/Integration (Épica 1 + 3) | Orgs, areas, subjects, topics, courses, time slots | Fase 1 |
 | 3 — Coordination Documents (Épica 4) | Wizard, secciones dinámicas, CRUD, publicación | Fase 2 |
 | 4 — AI Generation (Épica 6) | Generación de secciones, plan de clases, chat | Fase 3 |
@@ -170,7 +170,7 @@ Sistema multi-tenant de planificación educativa anual. Cada organización (cole
 ### Flujo 1: Setup de la organización (Admin)
 
 **Actor:** Admin / Equipo de implementación
-**Precondición:** Organización creada en Auth0
+**Precondición:** Organización creada en el sistema
 
 1. Crear organización con config JSONB (niveles de topics, secciones, feature flags)
 2. Crear usuarios y asignar roles (teacher, coordinator, admin)
@@ -250,8 +250,8 @@ Sistema multi-tenant de planificación educativa anual. Cada organización (cole
 | 4 | Secciones del doc son dinámicas según `coord_doc_sections` | Cada sección tiene key, label, type, ai_prompt, required | Back + Front |
 | 5 | Momentos didácticos son enum fijo: apertura, desarrollo, cierre | desarrollo permite 1 a `desarrollo_max_activities` actividades | Back |
 | 6 | Resource types pueden ser públicos (todas las orgs) o privados (1 org) | `organization_id IS NULL` = público | Back |
-| 7 | Un usuario puede tener múltiples roles | teacher + coordinator en la misma org | Auth0 + Back |
-| 8 | Mismo email puede existir en orgs distintas | `UNIQUE(email, organization_id)` | Auth0 + Back |
+| 7 | Un usuario puede tener múltiples roles | teacher + coordinator en la misma org | JWT + Back |
+| 8 | Mismo email puede existir en orgs distintas | `UNIQUE(email, organization_id)` | JWT + Back |
 | 9 | El período del documento es texto libre con fechas custom | No se fuerza semestre/cuatrimestre | Back |
 | 10 | Un docente por materia por curso (first-come-first-serve si hay conflicto) | El primero en planificar escribe | Back |
 | 11 | Coordinador puede override manual de class_count (± feriados) | Ajuste manual sobre el cálculo automático | Back |
@@ -313,9 +313,9 @@ Sistema multi-tenant de planificación educativa anual. Cada organización (cole
 
 ```
 ┌─────────────────┐                    ┌──────────────────────┐
-│  Alizia Frontend │                    │    Auth0              │
-│  React + TS      │                    │    (SaaS)             │
-└────────┬────────┘                    │    JWT + JWKS         │
+│  Alizia Frontend │                    │  JWT Auth             │
+│  React + TS      │                    │  (team-ai-toolkit/    │
+└────────┬────────┘                    │   tokens)             │
          │                              └──────────┬───────────┘
          │ HTTPS                                   │ JWT firmado
          ▼                                         ▼
@@ -351,7 +351,7 @@ Sistema multi-tenant de planificación educativa anual. Cada organización (cole
 | Framework | Gin (abstraído via team-ai-toolkit/web) |
 | ORM | GORM (estándar empresa) |
 | DB | PostgreSQL |
-| Auth | Auth0 JWT + Bearer tokens (team-ai-toolkit/tokens valida via JWKS) |
+| Auth | JWT + Bearer tokens (team-ai-toolkit/tokens valida via JWKS) |
 | AI | Azure OpenAI SDK (gpt-5-mini) |
 | Logging | slog (team-ai-toolkit/applog) |
 | Error tracking | Bugsnag (team-ai-toolkit/applog/bugsnag) |

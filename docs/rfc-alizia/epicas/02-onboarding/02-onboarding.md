@@ -53,12 +53,12 @@ Un usuario nuevo (coordinador o docente) ingresa a la plataforma por primera vez
 
 ## Historias de usuario
 
-| # | Historia | Descripción | Prioridad |
-|---|---------|-------------|-----------|
-| HU-2.1 | [Detección de primer ingreso](./HU-2.1-deteccion-primer-ingreso/HU-2.1-deteccion-primer-ingreso.md) | Detectar si el usuario ya completó onboarding y redirigir si no | Alta |
-| HU-2.2 | [Formulario de perfil](./HU-2.2-formulario-perfil/HU-2.2-formulario-perfil.md) | Captura de datos del usuario configurables por organización | Alta |
-| HU-2.3 | [Product tour](./HU-2.3-product-tour/HU-2.3-product-tour.md) | Recorrido guiado por la plataforma adaptado al rol | Media |
-| HU-2.4 | [Configuración de onboarding por org](./HU-2.4-configuracion-onboarding-por-org/HU-2.4-configuracion-onboarding-por-org.md) | Definición de campos y pasos del tour por organización | Alta |
+| # | Historia | Descripción | Prioridad | Tareas |
+|---|---------|-------------|-----------|--------|
+| HU-2.1 | [Detección de primer ingreso](./HU-2.1-deteccion-primer-ingreso/HU-2.1-deteccion-primer-ingreso.md) | Detectar si el usuario ya completó onboarding y redirigir si no | Alta | 2 |
+| HU-2.2 | [Formulario de perfil](./HU-2.2-formulario-perfil/HU-2.2-formulario-perfil.md) | Captura de datos del usuario configurables por organización | Alta | 2 |
+| HU-2.3 | [Product tour](./HU-2.3-product-tour/HU-2.3-product-tour.md) | Recorrido guiado por la plataforma adaptado al rol | Media | 1 |
+| HU-2.4 | [Configuración de onboarding por org](./HU-2.4-configuracion-onboarding-por-org/HU-2.4-configuracion-onboarding-por-org.md) | Definición de campos y pasos del tour por organización | Alta | 1 |
 
 ---
 
