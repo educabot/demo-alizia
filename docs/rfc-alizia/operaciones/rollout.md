@@ -25,7 +25,7 @@
 | Qué monitorear | Herramienta | Umbral de alerta |
 |---|---|---|
 | Errores 5xx | Bugsnag | > 5 en 5 minutos |
-| Latencia de endpoints | Railway logs (slog) | p95 > 2 segundos |
+| Latencia de endpoints | Railway logs (applog) | p95 > 2 segundos |
 | Healthcheck | Railway built-in | /health no responde en 30s |
-| Errores de IA | Bugsnag + slog | Azure OpenAI timeout > 30s |
-| Login failures | slog (login_failed events) | > 20 en 5 minutos desde misma IP |
+| Errores de IA | Bugsnag + applog | Azure OpenAI timeout > 30s |
+| Login failures | applog (login_failed events) | > 20 en 5 minutos desde misma IP |
